@@ -9,9 +9,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
-public class FHUSPM_NON_Release {
+public class FHUSPM_FNUB_Release {
     /**
      * the time the algorithm started
      */
@@ -56,14 +55,14 @@ public class FHUSPM_NON_Release {
      * iCMap & SCMap
      **/
     HashMap<Integer, ArrayList<Integer>> iCMap;
-    Integer[] S;
+    HashMap<Integer, ArrayList<Integer>> sCMap;
 
     /**
      * QSDB
      **/
     SULBigNumber qsdb;
 
-    public FHUSPM_NON_Release() {
+    public FHUSPM_FNUB_Release() {
     }
 
     public void runAlgorithm(String input, String output, double minUtility, int minSupport) throws IOException, Exception {
@@ -119,16 +118,26 @@ public class FHUSPM_NON_Release {
     }
 
     public void FHUSPM() throws IOException {
-        S = qsdb.db.keySet().stream().toArray(Integer[]::new);
+        // Steps: 1 + 2
+        var S = qsdb.db.keySet().stream().toArray(Integer[]::new);
         Arrays.sort(S);
 
-        iCMap = new HashMap<>();
-        for (var itemA: S) {
+        iCMap = new HashMap<Integer, ArrayList<Integer>>();
+        for (var itemA : S) {
             iCMap.put(itemA, new ArrayList<>());
-            for (var itemB: S) {
+            for (var itemB : S) {
                 if (itemA < itemB) {
                     iCMap.get(itemA).add(itemB);
                 }
+            }
+        }
+
+
+        sCMap = new HashMap<>();
+        for (var itemA : S) {
+            sCMap.put(itemA, new ArrayList<>());
+            for (var itemB : S) {
+                sCMap.get(itemA).add(itemB);
             }
         }
 
@@ -144,6 +153,8 @@ public class FHUSPM_NON_Release {
 
         if (alpha.getSupport() < minSupport) return;
 
+        if (new BigDecimal(alpha.calcFNub() + "").compareTo(minUtility) < 0) return;
+
         var avgUtility = alpha.calcAvgUtility();
 
         if (avgUtility.compareTo(minUtility) >= 0) {
@@ -156,7 +167,7 @@ public class FHUSPM_NON_Release {
             MineFHUS(SULBigNumber.iExtend(alpha, qsdb.get(item)));
         }
 
-        for (var item: S) {
+        for (var item: sCMap.get(x)) {
             MineFHUS(SULBigNumber.sExtend(alpha, qsdb.get(item)));
         }
 
@@ -174,7 +185,7 @@ public class FHUSPM_NON_Release {
     }
 
     public void printStatistics() {
-        System.out.println("=============        FHUSPM_NON_Release       ===========");
+        System.out.println("=============       FHUSPM_FNUB_Release       ===========");
         System.out.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
         System.out.println(" Max Memory ~ " + MemoryLogger.getInstance().getMaxMemory() + " MB");
         System.out.println(" Num extensions: " + numExtension);

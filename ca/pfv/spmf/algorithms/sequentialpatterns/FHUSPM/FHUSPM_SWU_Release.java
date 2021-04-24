@@ -9,9 +9,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
-public class FHUSPM_NON_Release {
+public class FHUSPM_SWU_Release {
     /**
      * the time the algorithm started
      */
@@ -56,14 +55,14 @@ public class FHUSPM_NON_Release {
      * iCMap & SCMap
      **/
     HashMap<Integer, ArrayList<Integer>> iCMap;
-    Integer[] S;
+    HashMap<Integer, ArrayList<Integer>> sCMap;
 
     /**
      * QSDB
      **/
     SULBigNumber qsdb;
 
-    public FHUSPM_NON_Release() {
+    public FHUSPM_SWU_Release() {
     }
 
     public void runAlgorithm(String input, String output, double minUtility, int minSupport) throws IOException, Exception {
@@ -119,15 +118,40 @@ public class FHUSPM_NON_Release {
     }
 
     public void FHUSPM() throws IOException {
+        // Steps: 1 + 2
+        var S = qsdb.db.keySet().stream().toArray(Integer[]::new);
+        Arrays.sort(S);
+
+        for (var item: S) {
+            if (qsdb.get(item).getSupport() < minSupport || new BigDecimal(qsdb.get(item).calcSWU() + "").compareTo(minUtility) < 0) {
+                qsdb.deleteItem(item);
+            }
+        }
+
         S = qsdb.db.keySet().stream().toArray(Integer[]::new);
         Arrays.sort(S);
 
-        iCMap = new HashMap<>();
-        for (var itemA: S) {
+        iCMap = new HashMap<Integer, ArrayList<Integer>>();
+        for (var itemA : S) {
             iCMap.put(itemA, new ArrayList<>());
-            for (var itemB: S) {
+            for (var itemB : S) {
                 if (itemA < itemB) {
-                    iCMap.get(itemA).add(itemB);
+                    SULBigNumber iExtendSeq = SULBigNumber.iExtend(qsdb.get(itemA), qsdb.get(itemB));
+                    if (iExtendSeq.getSupport() >= minSupport && new BigDecimal(iExtendSeq.calcSWU() + "").compareTo(minUtility) >= 0) {
+                        iCMap.get(itemA).add(itemB);
+                    }
+                }
+            }
+        }
+
+
+        sCMap = new HashMap<>();
+        for (var itemA : S) {
+            sCMap.put(itemA, new ArrayList<>());
+            for (var itemB : S) {
+                SULBigNumber sExtendSeq = SULBigNumber.sExtend(qsdb.get(itemA), qsdb.get(itemB));
+                if (sExtendSeq.getSupport() >= minSupport && new BigDecimal(sExtendSeq.calcSWU() + "").compareTo(minUtility) >= 0) {
+                    sCMap.get(itemA).add(itemB);
                 }
             }
         }
@@ -142,7 +166,10 @@ public class FHUSPM_NON_Release {
     public void MineFHUS(SULBigNumber alpha) throws IOException {
         numExtension++;
 
+
         if (alpha.getSupport() < minSupport) return;
+
+        if (new BigDecimal(alpha.calcSWU() + "").compareTo(minUtility) < 0) return;
 
         var avgUtility = alpha.calcAvgUtility();
 
@@ -156,7 +183,7 @@ public class FHUSPM_NON_Release {
             MineFHUS(SULBigNumber.iExtend(alpha, qsdb.get(item)));
         }
 
-        for (var item: S) {
+        for (var item: sCMap.get(x)) {
             MineFHUS(SULBigNumber.sExtend(alpha, qsdb.get(item)));
         }
 
@@ -174,7 +201,7 @@ public class FHUSPM_NON_Release {
     }
 
     public void printStatistics() {
-        System.out.println("=============        FHUSPM_NON_Release       ===========");
+        System.out.println("=============        FHUSPM_SWU_Release       ===========");
         System.out.println(" Total time ~ " + (endTimestamp - startTimestamp) + " ms");
         System.out.println(" Max Memory ~ " + MemoryLogger.getInstance().getMaxMemory() + " MB");
         System.out.println(" Num extensions: " + numExtension);
