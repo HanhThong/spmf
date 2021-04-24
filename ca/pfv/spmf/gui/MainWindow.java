@@ -55,7 +55,6 @@ import javax.swing.border.EmptyBorder;
 import ca.pfv.spmf.algorithmmanager.AlgorithmManager;
 import ca.pfv.spmf.algorithmmanager.DescriptionOfAlgorithm;
 import ca.pfv.spmf.algorithmmanager.DescriptionOfParameter;
-import ca.pfv.spmf.algorithmmanager.descriptions.DescriptionAlgoClusterViewer;
 import ca.pfv.spmf.algorithms.timeseries.TimeSeries;
 import ca.pfv.spmf.algorithms.timeseries.reader_writer.AlgoTimeSeriesReader;
 import ca.pfv.spmf.gui.patternvizualizer.PatternVizualizer;
@@ -908,8 +907,6 @@ public class MainWindow extends JFrame implements ThreadCompleteListener, Uncaug
 				try {
 					
 					// Then call the time series viewer
-					DescriptionAlgoClusterViewer clusterViewer = new DescriptionAlgoClusterViewer();
-					clusterViewer.runAlgorithm(new String[]{}, outputFile, null);
 
 					
 				}  catch (SecurityException e) {

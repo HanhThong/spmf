@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="spmf:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/spmf_jar</output-path>
+    <root id="archive" name="spmf.jar">
+      <element id="module-output" name="spmf" />
+    </root>
+  </artifact>
+</component>
